@@ -3,10 +3,10 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Yakureki Dummy v0.3</title>
+<title>Yakureki Dummy v0.4</title>
 <style>
 :root{
-  --panel-width:min(390px,92vw);
+  --panel-width:min(410px,94vw);
 }
 *{box-sizing:border-box}
 body{
@@ -52,11 +52,8 @@ textarea{
   overflow-y:auto;
   padding:18px 16px calc(24px + env(safe-area-inset-bottom));
 }
-.drawer.open{
-  transform:translateX(0);
-}
+.drawer.open{transform:translateX(0)}
 
-/* 開閉ボタン */
 .drawer-tab{
   position:fixed;
   right:0;
@@ -80,8 +77,6 @@ textarea{
   right:var(--panel-width);
   background:#56666b;
 }
-.drawer-tab:active{transform:translateY(-50%) scale(.98)}
-
 .drawer-head{
   display:flex;
   justify-content:space-between;
@@ -89,10 +84,7 @@ textarea{
   gap:10px;
   margin-bottom:14px;
 }
-.drawer-head h2{
-  margin:0;
-  font-size:21px;
-}
+.drawer-head h2{margin:0;font-size:21px}
 .close-btn{
   border:0;
   background:#edf1f2;
@@ -128,6 +120,7 @@ textarea{
   gap:10px;
   flex-wrap:wrap;
 }
+
 h3{
   margin:18px 0 8px;
   font-size:16px;
@@ -152,13 +145,45 @@ h3{
   border-color:#28a89a;
   color:#176b62;
 }
+
+/* 3段階ボタン */
+.status-group{
+  border:1px solid #d8e0e3;
+  border-radius:12px;
+  padding:10px;
+  margin-bottom:9px;
+}
+.status-label{
+  font-weight:800;
+  margin-bottom:8px;
+}
+.status-options{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:6px;
+}
+.status-btn{
+  border:1px solid #c5d0d3;
+  background:#fff;
+  border-radius:9px;
+  padding:10px 6px;
+  font-size:13px;
+  font-weight:700;
+  min-height:42px;
+}
+.status-btn.on{
+  background:#e6f6f3;
+  border-color:#28a89a;
+  color:#176b62;
+}
+
 .out{
   white-space:pre-wrap;
   border:1px solid #d8e0e3;
   border-radius:10px;
   background:#f8faf9;
   padding:10px;
-  min-height:110px;
+  min-height:130px;
 }
 .actions{
   display:grid;
@@ -178,12 +203,7 @@ button.action{
 
 @media(max-width:820px){
   .main{padding:12px}
-  .drawer{
-    width:min(390px,94vw);
-  }
-  :root{
-    --panel-width:min(390px,94vw);
-  }
+  :root{--panel-width:min(410px,94vw)}
 }
 </style>
 </head>
@@ -192,7 +212,7 @@ button.action{
 <main class="main">
   <div class="card">
     <b>薬歴入力ダミー</b>
-    <p>右端の「入力補助」を押すと、画面を押し縮めずに補助パネルが重なって開きます。</p>
+    <p>右端の「入力補助」を押すと、左側の画面を動かさずに補助パネルが重なって開きます。</p>
     <textarea placeholder="例：母より、昨夜から発熱。水分摂取はできている。"></textarea>
   </div>
 
@@ -241,6 +261,35 @@ button.action{
     <button class="sym">発疹</button><button class="sym">食欲低下</button>
   </div>
 
+  <h3>全身状態</h3>
+
+  <div class="status-group" data-key="appetite">
+    <div class="status-label">食欲</div>
+    <div class="status-options">
+      <button class="status-btn" data-value="normal">普段通り</button>
+      <button class="status-btn" data-value="low">低下</button>
+      <button class="status-btn" data-value="poor">ほぼ不可</button>
+    </div>
+  </div>
+
+  <div class="status-group" data-key="fluid">
+    <div class="status-label">水分</div>
+    <div class="status-options">
+      <button class="status-btn" data-value="normal">摂取可</button>
+      <button class="status-btn" data-value="low">少ない</button>
+      <button class="status-btn" data-value="poor">摂取困難</button>
+    </div>
+  </div>
+
+  <div class="status-group" data-key="energy">
+    <div class="status-label">元気</div>
+    <div class="status-options">
+      <button class="status-btn" data-value="normal">普段通り</button>
+      <button class="status-btn" data-value="low">やや低下</button>
+      <button class="status-btn" data-value="poor">ぐったり</button>
+    </div>
+  </div>
+
   <h3>生成テキスト</h3>
   <div id="out" class="out">（入力・選択するとここに生成されます）</div>
 
@@ -265,27 +314,69 @@ function setDrawer(open){
 drawerTab.addEventListener('click',()=>setDrawer(!drawer.classList.contains('open')));
 closeBtn.addEventListener('click',()=>setDrawer(false));
 
-const selected=[];
-const buttons=[...document.querySelectorAll('.sym')];
+const selectedSymptoms=[];
+const symptomButtons=[...document.querySelectorAll('.sym')];
 const out=document.getElementById('out');
 const weight=document.getElementById('weight');
 const allergyRadios=[...document.querySelectorAll('input[name="allergy"]')];
 
+const statusState={
+  appetite:null,
+  fluid:null,
+  energy:null
+};
+
+const statusText={
+  appetite:{
+    normal:'食欲は普段通り。',
+    low:'食欲低下あり。',
+    poor:'食欲ほぼ不可。'
+  },
+  fluid:{
+    normal:'水分摂取可能。',
+    low:'水分摂取少なめ。',
+    poor:'水分摂取困難。'
+  },
+  energy:{
+    normal:'元気は普段通り。',
+    low:'元気やや低下。',
+    poor:'ぐったりしている。'
+  }
+};
+
 function render(){
   const blocks=[];
 
-  if(selected.length){
-    blocks.push('##S##\n'+selected.join('、')+'あり。');
+  const sParts=[];
+
+  if(selectedSymptoms.length){
+    sParts.push(selectedSymptoms.join('、')+'あり。');
   }
 
+  ['appetite','fluid','energy'].forEach(key=>{
+    const value=statusState[key];
+    if(value){
+      sParts.push(statusText[key][value]);
+    }
+  });
+
+  if(sParts.length){
+    blocks.push('##S##\n'+sParts.join('\n'));
+  }
+
+  const oParts=[];
   const w=weight.value.trim();
   if(w){
-    blocks.push('##O##\n体重'+w+'kg。');
+    oParts.push('体重'+w+'kg。');
   }
 
   const allergy=allergyRadios.find(r=>r.checked)?.value;
   if(allergy){
-    blocks.push('##O##\n薬剤アレルギー'+allergy+'。');
+    oParts.push('薬剤アレルギー'+allergy+'。');
+  }
+
+  if(oParts.length){
+    blocks.push('##O##\n'+oParts.join('\n'));
   }
 
   out.textContent=blocks.length
@@ -293,29 +384,54 @@ function render(){
     : '（入力・選択するとここに生成されます）';
 }
 
-buttons.forEach(b=>b.addEventListener('click',()=>{
+symptomButtons.forEach(b=>b.addEventListener('click',()=>{
   const s=b.textContent;
-  const i=selected.indexOf(s);
+  const i=selectedSymptoms.indexOf(s);
 
   if(i>=0){
-    selected.splice(i,1);
+    selectedSymptoms.splice(i,1);
     b.classList.remove('on');
   }else{
-    selected.push(s);
+    selectedSymptoms.push(s);
     b.classList.add('on');
   }
-
   render();
 }));
+
+document.querySelectorAll('.status-group').forEach(group=>{
+  const key=group.dataset.key;
+  const buttons=[...group.querySelectorAll('.status-btn')];
+
+  buttons.forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      const value=btn.dataset.value;
+
+      if(statusState[key]===value){
+        statusState[key]=null;
+        btn.classList.remove('on');
+      }else{
+        statusState[key]=value;
+        buttons.forEach(b=>b.classList.remove('on'));
+        btn.classList.add('on');
+      }
+      render();
+    });
+  });
+});
 
 weight.addEventListener('input',render);
 allergyRadios.forEach(r=>r.addEventListener('change',render));
 
 document.getElementById('clear').addEventListener('click',()=>{
-  selected.length=0;
-  buttons.forEach(b=>b.classList.remove('on'));
+  selectedSymptoms.length=0;
+  symptomButtons.forEach(b=>b.classList.remove('on'));
+
+  Object.keys(statusState).forEach(key=>statusState[key]=null);
+  document.querySelectorAll('.status-btn').forEach(b=>b.classList.remove('on'));
+
   weight.value='';
   allergyRadios.forEach(r=>r.checked=false);
+
   render();
 });
 
