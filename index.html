@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Yakureki Dummy v0.7</title>
+<title>Yakureki Dummy v0.9</title>
 <style>
 :root{
   --panel-width:min(410px,94vw);
@@ -94,31 +94,55 @@ textarea{
   font-size:14px;
 }
 
-.grid{
+.top-info{
+  display:grid;
+  gap:7px;
+}
+.measure-row{
   display:grid;
   grid-template-columns:1fr 1fr;
-  gap:8px;
+  gap:7px;
 }
 .field{
   border:1px solid #d8e0e3;
   border-radius:10px;
-  padding:10px;
+  padding:8px 10px;
   background:#fff;
+  min-height:48px;
+  display:flex;
+  align-items:center;
+  gap:8px;
 }
 .field-title{
-  font-size:12px;
-  color:#6d7b80;
-  font-weight:700;
-  margin-bottom:6px;
+  font-size:14px;
+  color:#46575d;
+  font-weight:800;
+  margin:0;
+  white-space:nowrap;
 }
 .field input[type=number]{
-  width:90px;
-  font-size:17px;
+  width:72px;
+  min-width:0;
+  font-size:16px;
+  padding:5px 6px;
+  border:1px solid #cbd5d8;
+  border-radius:7px;
+}
+.unit{
+  font-weight:700;
+  white-space:nowrap;
+}
+.allergy-field{
+  justify-content:flex-start;
 }
 .radio-row{
   display:flex;
-  gap:10px;
-  flex-wrap:wrap;
+  gap:12px;
+  align-items:center;
+  flex-wrap:nowrap;
+}
+.radio-row label{
+  white-space:nowrap;
 }
 
 h3{
@@ -252,7 +276,7 @@ button.action{
   </div>
 </main>
 
-<div class="version-badge">Version v0.7</div>
+<div class="version-badge">Version v0.9</div>
 
 <button id="drawerTab" class="drawer-tab" aria-expanded="false" aria-controls="drawer">
   入力補助
@@ -264,13 +288,22 @@ button.action{
     <button id="closeBtn" class="close-btn">閉じる</button>
   </div>
 
-  <div class="grid">
-    <div class="field">
-      <div class="field-title">体重</div>
-      <input id="weight" type="number" inputmode="decimal" step="0.1" placeholder="14.2"> kg
+  <div class="top-info">
+    <div class="measure-row">
+      <div class="field">
+        <div class="field-title">体重</div>
+        <input id="weight" type="number" inputmode="decimal" step="0.1" placeholder="14.2">
+        <span class="unit">kg</span>
+      </div>
+
+      <div class="field">
+        <div class="field-title">体温</div>
+        <input id="temperature" type="number" inputmode="decimal" step="0.1" placeholder="38.5">
+        <span class="unit">℃</span>
+      </div>
     </div>
 
-    <div class="field">
+    <div class="field allergy-field">
       <div class="field-title">アレルギー</div>
       <div class="radio-row">
         <label><input type="radio" name="allergy" value="なし">なし</label>
@@ -286,7 +319,7 @@ button.action{
     <button class="sym">咳</button><button class="sym">喘鳴</button>
     <button class="sym">腹痛</button><button class="sym">嘔吐</button>
     <button class="sym">下痢</button><button class="sym">便秘</button>
-    <button class="sym">発疹</button><button class="sym">食欲低下</button>
+    <button class="sym">発疹</button>
   </div>
 
   <h3>全身状態</h3>
@@ -346,6 +379,7 @@ const selectedSymptoms=[];
 const symptomButtons=[...document.querySelectorAll('.sym')];
 const out=document.getElementById('out');
 const weight=document.getElementById('weight');
+const temperature=document.getElementById('temperature');
 const allergyRadios=[...document.querySelectorAll('input[name="allergy"]')];
 
 const statusState={
@@ -398,6 +432,11 @@ function render(){
     oParts.push('体重'+w+'kg。');
   }
 
+  const t=temperature.value.trim();
+  if(t){
+    oParts.push('体温'+t+'℃。');
+  }
+
   const allergy=allergyRadios.find(r=>r.checked)?.value;
   if(allergy){
     oParts.push('薬剤アレルギー'+allergy+'。');
@@ -448,6 +487,7 @@ document.querySelectorAll('.status-group').forEach(group=>{
 });
 
 weight.addEventListener('input',render);
+temperature.addEventListener('input',render);
 allergyRadios.forEach(r=>r.addEventListener('change',render));
 
 document.getElementById('clear').addEventListener('click',()=>{
@@ -458,6 +498,7 @@ document.getElementById('clear').addEventListener('click',()=>{
   document.querySelectorAll('.status-btn').forEach(b=>b.classList.remove('on'));
 
   weight.value='';
+  temperature.value='';
   allergyRadios.forEach(r=>r.checked=false);
 
   render();
