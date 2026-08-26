@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Yakureki Dummy v0.6</title>
+<title>Yakureki Dummy v0.7</title>
 <style>
 :root{
   --panel-width:min(410px,94vw);
@@ -252,7 +252,7 @@ button.action{
   </div>
 </main>
 
-<div class="version-badge">Version v0.6</div>
+<div class="version-badge">Version v0.7</div>
 
 <button id="drawerTab" class="drawer-tab" aria-expanded="false" aria-controls="drawer">
   入力補助
@@ -292,11 +292,11 @@ button.action{
   <h3>全身状態</h3>
 
   <div class="status-group" data-key="appetite">
-    <div class="status-label">食欲</div>
+    <div class="status-label">食事</div>
     <div class="status-options">
-      <button class="status-btn" data-value="normal">普段通り</button>
-      <button class="status-btn" data-value="low">低下</button>
-      <button class="status-btn" data-value="poor">ほぼ不可</button>
+      <button class="status-btn" data-value="normal">摂取可</button>
+      <button class="status-btn" data-value="low">少ない</button>
+      <button class="status-btn" data-value="poor">摂取困難</button>
     </div>
   </div>
 
@@ -356,9 +356,9 @@ const statusState={
 
 const statusText={
   appetite:{
-    normal:'食欲は普段通り。',
-    low:'食欲低下あり。',
-    poor:'食欲ほぼ不可。'
+    normal:'食事摂取可能。',
+    low:'食事摂取少なめ。',
+    poor:'食事摂取困難。'
   },
   fluid:{
     normal:'水分摂取可能。',
