@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Yakureki Dummy v0.9</title>
+<title>Yakureki Dummy v1.1</title>
 <style>
 :root{
   --panel-width:min(410px,94vw);
@@ -135,14 +135,33 @@ textarea{
 .allergy-field{
   justify-content:flex-start;
 }
-.radio-row{
-  display:flex;
-  gap:12px;
-  align-items:center;
-  flex-wrap:nowrap;
+.allergy-block{
+  display:block;
+  min-height:auto;
 }
-.radio-row label{
+.allergy-block .field-title{
+  margin-bottom:6px;
+}
+.allergy-options{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  flex-wrap:wrap;
+}
+.allergy-options label{
   white-space:nowrap;
+}
+.allergy-options input[type=text]{
+  flex:1 1 180px;
+  min-width:140px;
+  font-size:15px;
+  padding:7px 8px;
+  border:1px solid #cbd5d8;
+  border-radius:7px;
+}
+.allergy-options input[type=text]:disabled{
+  background:#f2f4f5;
+  color:#98a4a8;
 }
 
 h3{
@@ -276,7 +295,7 @@ button.action{
   </div>
 </main>
 
-<div class="version-badge">Version v0.9</div>
+<div class="version-badge">Version v1.1</div>
 
 <button id="drawerTab" class="drawer-tab" aria-expanded="false" aria-controls="drawer">
   入力補助
@@ -303,11 +322,21 @@ button.action{
       </div>
     </div>
 
-    <div class="field allergy-field">
-      <div class="field-title">アレルギー</div>
-      <div class="radio-row">
+    <div class="field allergy-field allergy-block">
+      <div class="field-title">アレルギー・副作用歴</div>
+      <div class="allergy-options">
         <label><input type="radio" name="allergy" value="なし">なし</label>
         <label><input type="radio" name="allergy" value="あり">あり</label>
+        <input id="allergyDetail" type="text" placeholder="内容を入力" disabled>
+      </div>
+    </div>
+
+    <div class="field allergy-field allergy-block">
+      <div class="field-title">既往歴</div>
+      <div class="allergy-options">
+        <label><input type="radio" name="history" value="なし">なし</label>
+        <label><input type="radio" name="history" value="あり">あり</label>
+        <input id="historyDetail" type="text" placeholder="内容を入力" disabled>
       </div>
     </div>
   </div>
@@ -381,6 +410,9 @@ const out=document.getElementById('out');
 const weight=document.getElementById('weight');
 const temperature=document.getElementById('temperature');
 const allergyRadios=[...document.querySelectorAll('input[name="allergy"]')];
+const allergyDetail=document.getElementById('allergyDetail');
+const historyRadios=[...document.querySelectorAll('input[name="history"]')];
+const historyDetail=document.getElementById('historyDetail');
 
 const statusState={
   appetite:null,
@@ -438,8 +470,19 @@ function render(){
   }
 
   const allergy=allergyRadios.find(r=>r.checked)?.value;
-  if(allergy){
-    oParts.push('薬剤アレルギー'+allergy+'。');
+  const allergyText=allergyDetail.value.trim();
+  if(allergy==='なし'){
+    oParts.push('アレルギー・副作用歴なし。');
+  }else if(allergy==='あり'){
+    oParts.push('アレルギー・副作用歴あり'+(allergyText ? '（'+allergyText+'）。' : '。'));
+  }
+
+  const history=historyRadios.find(r=>r.checked)?.value;
+  const historyText=historyDetail.value.trim();
+  if(history==='なし'){
+    oParts.push('既往歴なし。');
+  }else if(history==='あり'){
+    oParts.push('既往歴あり'+(historyText ? '（'+historyText+'）。' : '。'));
   }
 
   if(oParts.length){
@@ -488,7 +531,30 @@ document.querySelectorAll('.status-group').forEach(group=>{
 
 weight.addEventListener('input',render);
 temperature.addEventListener('input',render);
-allergyRadios.forEach(r=>r.addEventListener('change',render));
+allergyRadios.forEach(r=>r.addEventListener('change',()=>{
+  const allergy=allergyRadios.find(r=>r.checked)?.value;
+  const isDetailEnabled = allergy==='あり';
+  allergyDetail.disabled = !isDetailEnabled;
+  if(!isDetailEnabled){
+    allergyDetail.value='';
+  }else{
+    allergyDetail.focus();
+  }
+  render();
+}));
+allergyDetail.addEventListener('input',render);
+historyRadios.forEach(r=>r.addEventListener('change',()=>{
+  const history=historyRadios.find(r=>r.checked)?.value;
+  const isDetailEnabled = history==='あり';
+  historyDetail.disabled = !isDetailEnabled;
+  if(!isDetailEnabled){
+    historyDetail.value='';
+  }else{
+    historyDetail.focus();
+  }
+  render();
+}));
+historyDetail.addEventListener('input',render);
 
 document.getElementById('clear').addEventListener('click',()=>{
   selectedSymptoms.length=0;
@@ -500,6 +566,11 @@ document.getElementById('clear').addEventListener('click',()=>{
   weight.value='';
   temperature.value='';
   allergyRadios.forEach(r=>r.checked=false);
+  allergyDetail.value='';
+  allergyDetail.disabled=true;
+  historyRadios.forEach(r=>r.checked=false);
+  historyDetail.value='';
+  historyDetail.disabled=true;
 
   render();
 });
