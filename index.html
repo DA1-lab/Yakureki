@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Yakureki Dummy v1.9</title>
+<title>Yakureki Dummy v2.1</title>
 <style>
 :root{
   --panel-width:min(420px,94vw);
@@ -329,18 +329,19 @@ body{
 .drawer-tab{
   position:fixed;
   left:0;
-  top:50%;
-  transform:translateY(-50%);
+  top:92px;
   z-index:1002;
   border:0;
-  border-radius:0 12px 12px 0;
-  padding:14px 10px;
+  border-radius:0 10px 10px 0;
+  padding:9px 8px;
+  min-width:38px;
   background:#28a89a;
   color:#fff;
   font-weight:800;
-  font-size:14px;
-  writing-mode:vertical-rl;
-  letter-spacing:.08em;
+  font-size:13px;
+  line-height:1.05;
+  text-align:center;
+  white-space:pre-line;
   box-shadow:4px 4px 14px rgba(0,0,0,.15);
   touch-action:manipulation;
   transition:left .24s ease, background .2s ease;
@@ -348,6 +349,14 @@ body{
 .drawer-tab.open{
   left:var(--panel-width);
   background:#56666b;
+}
+.drawer-tab .fkey{
+  display:block;
+  margin-top:5px;
+  padding-top:5px;
+  border-top:1px solid rgba(255,255,255,.45);
+  font-size:9px;
+  letter-spacing:.02em;
 }
 .drawer-head{
   display:flex;
@@ -663,9 +672,12 @@ button.action{
   </div>
 </div>
 
-<div class="version-badge">Version v1.9</div>
+<div class="version-badge">Version v2.1</div>
 
-<button id="drawerTab" class="drawer-tab" aria-expanded="false" aria-controls="drawer">入力補助</button>
+<button id="drawerTab" class="drawer-tab" aria-expanded="false" aria-controls="drawer">
+入<br>力<br>補<br>助
+<span class="fkey">F10</span>
+</button>
 
 <aside id="drawer" class="drawer" aria-hidden="true">
   <div class="drawer-head">
@@ -762,10 +774,16 @@ function setDrawer(open){
   drawerTab.classList.toggle('open',open);
   drawer.setAttribute('aria-hidden',String(!open));
   drawerTab.setAttribute('aria-expanded',String(open));
-  drawerTab.textContent=open ? '閉じる' : '入力補助';
 }
 drawerTab.addEventListener('click',()=>setDrawer(!drawer.classList.contains('open')));
 closeBtn.addEventListener('click',()=>setDrawer(false));
+
+document.addEventListener('keydown',(e)=>{
+  if(e.key==='F10' && !e.ctrlKey && !e.altKey && !e.shiftKey && !e.metaKey){
+    e.preventDefault();
+    setDrawer(!drawer.classList.contains('open'));
+  }
+});
 
 const selectedSymptoms=[];
 const symptomButtons=[...document.querySelectorAll('.sym')];
