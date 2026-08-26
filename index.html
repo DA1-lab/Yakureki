@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Yakureki Dummy v1.4</title>
+<title>Yakureki Dummy v1.5</title>
 <style>
 :root{
   --panel-width:min(410px,94vw);
@@ -309,7 +309,7 @@ button.action{
   </div>
 </main>
 
-<div class="version-badge">Version v1.4</div>
+<div class="version-badge">Version v1.5</div>
 
 <button id="drawerTab" class="drawer-tab" aria-expanded="false" aria-controls="drawer">
   入力補助
@@ -394,8 +394,8 @@ button.action{
   <div class="status-group" data-key="energy">
     <div class="status-label">元気</div>
     <div class="status-options">
-      <button class="status-btn" data-value="normal">普段通り</button>
-      <button class="status-btn" data-value="low">やや低下</button>
+      <button class="status-btn" data-value="normal">元気</button>
+      <button class="status-btn" data-value="low">元気ない</button>
       <button class="status-btn" data-value="poor">ぐったり</button>
     </div>
   </div>
@@ -454,8 +454,8 @@ const statusText={
     poor:'水分摂取困難。'
   },
   energy:{
-    normal:'元気は普段通り。',
-    low:'元気やや低下。',
+    normal:'元気あり。',
+    low:'元気なし。',
     poor:'ぐったりしている。'
   }
 };
