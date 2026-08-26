@@ -11,10 +11,14 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;margin:0
 .card{background:#fff;border:1px solid #d8e0e3;border-radius:14px;padding:14px;margin-bottom:14px}
 textarea{width:100%;min-height:130px;font-size:16px;padding:10px;box-sizing:border-box}
 .grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.field{border:1px solid #d8e0e3;border-radius:10px;padding:10px;background:#fff}
+.field-title{font-size:12px;color:#6d7b80;font-weight:700;margin-bottom:5px}
+.field input[type=number]{width:90px;font-size:17px}
+.radio-row{display:flex;gap:10px;flex-wrap:wrap}
 .symptoms{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}
-.sym{border:1px solid #bcc8ca;background:#fff;border-radius:999px;padding:10px 14px;font-weight:700;font-size:15px}
+.sym{border:1px solid #bcc8ca;background:#fff;border-radius:999px;padding:10px 14px;font-weight:700;font-size:15px;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 .sym.on{background:#e6f6f3;border-color:#28a89a;color:#176b62}
-.out{white-space:pre-wrap;border:1px solid #d8e0e3;border-radius:10px;background:#f8faf9;padding:10px;min-height:70px}
+.out{white-space:pre-wrap;border:1px solid #d8e0e3;border-radius:10px;background:#f8faf9;padding:10px;min-height:90px}
 .actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
 button.action{border:0;border-radius:10px;padding:12px;font-weight:800;font-size:15px}
 .copy{background:#28a89a;color:#fff}.clear{background:#edf1f2}
@@ -37,11 +41,19 @@ button.action{border:0;border-radius:10px;padding:12px;font-weight:800;font-size
 
 <aside class="panel">
   <h2>小児科サポート</h2>
+
   <div class="grid">
-    <label>体重<br><input type="number" inputmode="decimal" step="0.1" placeholder="14.2"> kg</label>
-    <div>アレルギー<br>
-      <label><input type="radio" name="a">なし</label>
-      <label><input type="radio" name="a">あり</label>
+    <div class="field">
+      <div class="field-title">体重</div>
+      <input id="weight" type="number" inputmode="decimal" step="0.1" placeholder="14.2"> kg
+    </div>
+
+    <div class="field">
+      <div class="field-title">アレルギー</div>
+      <div class="radio-row">
+        <label><input type="radio" name="allergy" value="なし">なし</label>
+        <label><input type="radio" name="allergy" value="あり">あり</label>
+      </div>
     </div>
   </div>
 
@@ -56,8 +68,7 @@ button.action{border:0;border-radius:10px;padding:12px;font-weight:800;font-size
   </div>
 
   <h3>生成テキスト</h3>
-  <div id="out" class="out">##S##
-（症状を選択してください）</div>
+  <div id="out" class="out">（入力・選択するとここに生成されます）</div>
   <div class="actions">
     <button id="copy" class="action copy">コピー</button>
     <button id="clear" class="action clear">クリア</button>
@@ -69,23 +80,65 @@ button.action{border:0;border-radius:10px;padding:12px;font-weight:800;font-size
 const selected=[];
 const buttons=[...document.querySelectorAll('.sym')];
 const out=document.getElementById('out');
+const weight=document.getElementById('weight');
+const allergyRadios=[...document.querySelectorAll('input[name="allergy"]')];
 
 function render(){
-  out.textContent=selected.length ? '##S##\n'+selected.join('、')+'あり。' : '##S##\n（症状を選択してください）';
+  const blocks=[];
+
+  if(selected.length){
+    blocks.push('##S##\n'+selected.join('、')+'あり。');
+  }
+
+  const w=weight.value.trim();
+  if(w){
+    blocks.push('##O##\n体重'+w+'kg。');
+  }
+
+  const allergy=allergyRadios.find(r=>r.checked)?.value;
+  if(allergy){
+    blocks.push('##O##\n薬剤アレルギー'+allergy+'。');
+  }
+
+  out.textContent=blocks.length ? blocks.join('\n\n') : '（入力・選択するとここに生成されます）';
 }
+
 buttons.forEach(b=>b.addEventListener('click',()=>{
   const s=b.textContent;
   const i=selected.indexOf(s);
-  if(i>=0){selected.splice(i,1);b.classList.remove('on');}
-  else{selected.push(s);b.classList.add('on');}
+  if(i>=0){
+    selected.splice(i,1);
+    b.classList.remove('on');
+  }else{
+    selected.push(s);
+    b.classList.add('on');
+  }
   render();
 }));
+
+weight.addEventListener('input',render);
+allergyRadios.forEach(r=>r.addEventListener('change',render));
+
 document.getElementById('clear').addEventListener('click',()=>{
-  selected.length=0;buttons.forEach(b=>b.classList.remove('on'));render();
+  selected.length=0;
+  buttons.forEach(b=>b.classList.remove('on'));
+  weight.value='';
+  allergyRadios.forEach(r=>r.checked=false);
+  render();
 });
+
 document.getElementById('copy').addEventListener('click',async()=>{
-  try{await navigator.clipboard.writeText(out.textContent);alert('コピーしました');}
-  catch(e){alert('コピーできませんでした');}
+  const text=out.textContent;
+  if(!text.startsWith('##')){
+    alert('コピーする内容がありません');
+    return;
+  }
+  try{
+    await navigator.clipboard.writeText(text);
+    alert('コピーしました');
+  }catch(e){
+    alert('コピーできませんでした');
+  }
 });
 </script>
 </body>
